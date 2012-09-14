@@ -130,7 +130,7 @@ void TLSZmq::net_write_() {
             std::copy(readto, readto + read, nwrite.begin() + cur_size);
         } 
 
-        if (static_cast<size_t>(read) != 1024 || read == 0) break;
+        if (read != 1024 || read == 0) break;
     }
     
     if (!nwrite.empty()) {
@@ -157,7 +157,7 @@ void TLSZmq::net_read_() {
             std::copy(readto, readto + read, aread.begin() + cur_size);
         }
 
-        if (static_cast<size_t>(read) != 1024 || read == 0) break;
+        if (read != 1024 || read == 0) break;
     }
     
     if (!aread.empty()) {

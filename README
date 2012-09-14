@@ -1,0 +1,5 @@
+Example of doing client/server TLS over ZeroMQ. 
+
+make 
+./tlsserver
+./tlsclient

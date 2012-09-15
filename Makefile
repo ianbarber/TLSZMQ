@@ -1,6 +1,6 @@
 CC      = g++
 CFLAGS  = -g
-LDFLAGS = -lzmq -lssl
+LDFLAGS = -lzmq -lssl -lcrypto
 
 all: tlsserver tlsclient
 

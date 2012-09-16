@@ -1,9 +1,6 @@
 #include "tlszmq.h"
-//#include <stdio.h>
-//#include <string>
 #include <zmq.hpp>
 
-// Simple REP server
 int main(int argc, char* argv[]) {
     try {
         zmq::context_t ctx(1);

@@ -3,7 +3,6 @@
 #include <map>
 #include <zmq.hpp>
 
-// Simple REP server
 int main(int argc, char* argv[]) {
     try {
         zmq::context_t ctx(1);

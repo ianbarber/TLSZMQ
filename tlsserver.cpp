@@ -8,7 +8,8 @@ int main(int argc, char* argv[]) {
     try {
         zmq::context_t ctx(1);
         zmq::socket_t s1(ctx,ZMQ_ROUTER);
-        s1.bind ("tcp://*:5555");
+        //s1.connect ("tcp://localhost:5555");
+        s1.bind ("tcp://*:5556");
         std::string s_crt("server.crt");
         std::string s_key("server.key");
         std::map<std::string, TLSZmq*> conns;
@@ -16,10 +17,21 @@ int main(int argc, char* argv[]) {
         while (true) {
             // Wait for a message
             zmq::message_t identifier(0);
+            zmq::message_t request(0);
+            std::string ident;
+			size_t size;
+            
+            // Ignore seperator & intermediate ID stack
+            do {	
+            	s1.recv (&request);
+				size = request.size();
+            	if (size > 0) {
+					ident.assign(static_cast<char*>(request.data()), request.size());
+				}
+            	s1.send(request, ZMQ_SNDMORE);
+			} while(size > 0);
             
             // Retrieve or create the TLSZmq handler for this client
-            s1.recv (&identifier);
-            std::string ident (static_cast<char*>(identifier.data()), identifier.size());
             TLSZmq *tls;
             if(conns.find(ident) == conns.end()) {
                 tls = new TLSZmq(s_crt.c_str(), s_key.c_str());
@@ -27,10 +39,6 @@ int main(int argc, char* argv[]) {
             } else {
                 tls = conns[ident];
             }
-            
-            // Ignore seperator
-            zmq::message_t request(0);
-            s1.recv (&request);
             
             // Push message on to TLS and update
             s1.recv (&request);
@@ -51,9 +59,6 @@ int main(int argc, char* argv[]) {
             // If we need to send to the network, do so
             if(tls->needs_write()) {
                 zmq::message_t *data = tls->get_data();
-                s1.send(identifier, ZMQ_SNDMORE);
-                request.rebuild(0); // reuse request as delimiter
-                s1.send(request, ZMQ_SNDMORE);
                 s1.send(*data);
             }
         }

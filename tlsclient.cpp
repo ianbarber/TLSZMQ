@@ -8,7 +8,7 @@ int main(int argc, char* argv[]) {
     try {
         zmq::context_t ctx(1);
         zmq::socket_t s1(ctx,ZMQ_REQ);
-        s1.connect ("tcp://localhost:5555");
+        s1.connect ("tcp://localhost:5556");
         TLSZmq *tls = new TLSZmq();
         bool loop = true;
         zmq::message_t request (12);  

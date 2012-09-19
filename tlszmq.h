@@ -25,7 +25,7 @@ class TLSZmq {
 
     private:
         void init_(SSL_CTX *ctxt);
-        SSL_CTX *init_ctx_(SSL_METHOD *meth);
+        SSL_CTX *init_ctx_(const SSL_METHOD* meth);
         
         bool continue_ssl_(int function_return);
         void net_read_();

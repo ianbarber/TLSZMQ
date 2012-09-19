@@ -89,7 +89,7 @@ void TLSZmq::send(zmq::message_t *msg) {
     app_to_ssl->rebuild(msg->data(), msg->size(), NULL, NULL);
 }
 
-SSL_CTX *TLSZmq::init_ctx_(SSL_METHOD *meth) {
+SSL_CTX *TLSZmq::init_ctx_(const SSL_METHOD* meth) {
     OpenSSL_add_all_algorithms();
     SSL_library_init();
     SSL_load_error_strings();

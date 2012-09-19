@@ -16,3 +16,4 @@ device: device.cpp
 clean:
 	rm tlsclient
 	rm tlsserver
+	rm device

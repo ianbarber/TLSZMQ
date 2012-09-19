@@ -1,6 +1,6 @@
 CC      = g++
-CFLAGS  = -g
-LDFLAGS = -lzmq -lssl -lcrypto
+CFLAGS  += -g
+LDFLAGS += -lzmq -lssl -lcrypto
 
 all: tlsserver tlsclient device
 
@@ -16,3 +16,4 @@ device: device.cpp
 clean:
 	rm tlsclient
 	rm tlsserver
+	rm device

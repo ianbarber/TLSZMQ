@@ -155,9 +155,10 @@ void TLSZmq::net_read_() {
             size_t cur_size = aread.length();
             aread.resize(cur_size + read);
             std::copy(readto, readto + read, aread.begin() + cur_size);
+            continue;
         }
 
-        if (read != 1024) break;
+        break;
     }
     
     if (!aread.empty()) {

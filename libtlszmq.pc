@@ -1,0 +1,5 @@
+Name: libtlszmq
+URL: http://www.riskcompletefailure.com/2012/09/tls-and-zeromq.html
+Requires: libzmq openssl
+Version: 0.0
+Libs: -ltlszmq

@@ -3,6 +3,9 @@
  * Based on code from http://funcptr.net/2012/04/08/openssl-as-a-filter-%28or-non-blocking-openssl%29/
  */
 
+#ifndef _TLSZMQ_H
+#define _TLSZMQ_H
+
 #include <openssl/ssl.h>
 #include <zmq.hpp>
 
@@ -40,3 +43,5 @@ class TLSZmq {
         zmq::message_t *ssl_to_zmq;
         zmq::message_t *zmq_to_ssl;
 };
+
+#endif /* _TLSZMQ_H */

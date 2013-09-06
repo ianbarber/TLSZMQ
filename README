@@ -1,5 +1,5 @@
 Example of doing client/server TLS over ZeroMQ. 
 
 make 
-./tlsserver
-./tlsclient
+LD_LIBRARY_PATH+=:. ./tlsserver
+LD_LIBRARY_PATH+=:. ./tlsclient

@@ -1,0 +1,7 @@
+*.o
+*.lo
+*.so.*
+*.so
+tlsserver
+tlsclient
+device

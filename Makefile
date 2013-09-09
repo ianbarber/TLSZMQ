@@ -1,19 +1,42 @@
-CC      = g++
-CFLAGS  += -g
-LDFLAGS += -lzmq -lssl -lcrypto
+CXX      ?= g++
+CXXFLAGS ?= -g
+PKGS     = libzmq openssl
+MY_CXXFLAGS = $$($(PKG_CONFIG) --cflags $(PKGS))
+PKG_CONFIG ?= pkg-config
+LIBS     = $$($(PKG_CONFIG) --libs $(PKGS))
+LIBEXT   ?= .so
+LIBCOMPILECXXFLAGS ?= -fPIC
+LIBNAME  ?= libtlszmq$(LIBEXT).0
+LIBCXXFLAGS ?= -shared -Wl,-soname,$(LIBNAME)
+LN_S     ?= ln -s
 
 all: tlsserver tlsclient device
+.SUFFIXES: .cpp .o .lo
 
-tlsserver: tlsserver.cpp tlszmq.cpp
-	$(CC) $^ $(CFLAGS) $(LDFLAGS) -o $@
+LIBTLSZMQ = libtlszmq$(LIBEXT)
+tlszmq.o tlszmq.lo: tlszmq.h
+$(LIBNAME): tlszmq.lo
+	$(CXX) $(LIBCXXFLAGS) $(CXXFLAGS) -o $(LIBNAME) tlszmq.lo $(LIBS)
+$(LIBTLSZMQ): $(LIBNAME)
+	rm -f $(LIBTLSZMQ)
+	$(LN_S) $(LIBNAME) $(LIBTLSZMQ)
 
-tlsclient: tlsclient.cpp tlszmq.cpp
-	$(CC) $^ $(CFLAGS) $(LDFLAGS) -o $@
+tlsserver.o: tlszmq.h
+tlsserver: tlsserver.o $(LIBTLSZMQ)
+	$(CXX) $(CPPFLAGS) $(MY_CXXFLAGS) $(CXXFLAGS) $(LDFLAGS) -o '$(@)' $(^) $(LIBS)
 
-device: device.cpp
-	$(CC) $^ $(CFLAGS) $(LDFLAGS) -o $@
+tlsclient.o: tlszmq.h
+tlsclient: tlsclient.o $(LIBTLSZMQ)
+	$(CXX) $(CPPFLAGS) $(MY_CXXFLAGS) $(CXXFLAGS) -o '$(@)' $(^) $(LIBS)
+
+device: device.o
+	$(CXX) $(CPPFLAGS) $(MY_CXXFLAGS) $(CXXFLAGS) -o '$(@)' $(^) $(LIBS)
+
+.cpp.o:
+	$(CXX) -c $(CPPFLAGS) $(MY_CXXFLAGS) $(CXXFLAGS) -o '$(@)' '$(<)'
+.cpp.lo:
+	$(CXX) -c $(CPPFLAGS) $(LIBCOMPILECXXFLAGS) $(CXXFLAGS) -o '$(@)' '$(<)'
+
 
 clean:
-	rm tlsclient
-	rm tlsserver
-	rm device
+	rm -f tlsclient tlsserver device *.o *.lo $(LIBNAME) $(LIBTLSZMQ)

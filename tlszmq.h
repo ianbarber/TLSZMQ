@@ -11,9 +11,9 @@
 
 class TLSZmq {
     public:
-		enum {SSL_CLIENT = 0, SSL_SERVER = 1};
-		static SSL_CTX *ssl_ctx;
-		static SSL_CTX *init_ctx(int mode);
+	enum {SSL_CLIENT = 0, SSL_SERVER = 1};
+	static SSL_CTX *ssl_ctx;
+	static SSL_CTX *init_ctx(int mode);
 
         TLSZmq(SSL_CTX *ctx);
         TLSZmq( SSL_CTX *ctx,

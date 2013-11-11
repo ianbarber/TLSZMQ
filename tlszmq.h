@@ -11,25 +11,30 @@
 
 class TLSZmq {
     public:
-        TLSZmq();
-        TLSZmq( const char *certificate,
+	enum {SSL_CLIENT = 0, SSL_SERVER = 1};
+	static SSL_CTX *ssl_ctx;
+	static SSL_CTX *init_ctx(int mode);
+
+        TLSZmq(SSL_CTX *ctx);
+        TLSZmq( SSL_CTX *ctx,
+        		const char *certificate,
                 const char *key);
         virtual ~TLSZmq();
 
-        void update();
-        
         bool can_recv();
         bool needs_write();
         
-        zmq::message_t *recv();
+        zmq::message_t *read();
+        void write(zmq::message_t *msg);
+
         zmq::message_t *get_data();
         void put_data(zmq::message_t *msg);
-        void send(zmq::message_t *msg);
+
+        void shutdown();
 
     private:
         void init_(SSL_CTX *ctxt);
-        SSL_CTX *init_ctx_(const SSL_METHOD* meth);
-        
+        void update();
         bool continue_ssl_(int function_return);
         void net_read_();
         void net_write_();

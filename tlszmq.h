@@ -17,7 +17,7 @@ class TLSZmq {
 
         TLSZmq(SSL_CTX *ctx);
         TLSZmq( SSL_CTX *ctx,
-        		const char *certificate,
+       		const char *certificate,
                 const char *key);
         virtual ~TLSZmq();
 
@@ -35,7 +35,7 @@ class TLSZmq {
     private:
         void init_(SSL_CTX *ctxt);
         void update();
-        bool continue_ssl_(int function_return);
+        void check_ssl_(int ret_code);
         void net_read_();
         void net_write_();
 

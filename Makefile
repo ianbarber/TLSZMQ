@@ -15,8 +15,10 @@ all: tlsserver tlsclient device
 
 LIBTLSZMQ = libtlszmq$(LIBEXT)
 tlszmq.o tlszmq.lo: tlszmq.h
-$(LIBNAME): tlszmq.lo
-	$(CXX) $(LIBCXXFLAGS) $(CXXFLAGS) -o $(LIBNAME) tlszmq.lo $(LIBS)
+tlsexception.o tlsexception.lo: tlsexception.h
+
+$(LIBNAME): tlszmq.lo tlsexception.lo
+	$(CXX) $(LIBCXXFLAGS) $(CXXFLAGS) -o $(LIBNAME) tlszmq.lo tlsexception.lo $(LIBS)
 $(LIBTLSZMQ): $(LIBNAME)
 	rm -f $(LIBTLSZMQ)
 	$(LN_S) $(LIBNAME) $(LIBTLSZMQ)

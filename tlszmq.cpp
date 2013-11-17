@@ -2,32 +2,39 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include "tlszmq.h"
+#include "tlsexception.h"
 
 TLSZmq::TLSZmq(SSL_CTX *ctx)
 {
-	init_(ctx);
+    init_(ctx);
     SSL_set_connect_state(ssl);
 }
 
 TLSZmq::TLSZmq( 
-		SSL_CTX *ctx,
-        const char *certificate,
-        const char *key)
+    SSL_CTX *ctx,
+    const char *certificate,
+    const char *key)
 {
-    // This could do with some error checking!
-    SSL_CTX_use_certificate_file(ctx, certificate, SSL_FILETYPE_PEM);
-    SSL_CTX_use_PrivateKey_file(ctx, key, SSL_FILETYPE_PEM);
+    int rc = SSL_CTX_use_certificate_file(ctx, certificate, SSL_FILETYPE_PEM);
+    if (rc != 1) {
+        throw TLSException("failed to read credentials.");
+    }
+
+    rc = SSL_CTX_use_PrivateKey_file(ctx, key, SSL_FILETYPE_PEM);
+    if (rc != 1) {
+        throw TLSException("failed to use private key.");
+    }
+
     init_(ctx);
     SSL_set_accept_state(ssl);
 }
 
 void TLSZmq::shutdown() {
     int ret = SSL_shutdown(ssl);
-    printf("SSL_shutdown returned %d\n",ret);
 
     switch (ret) {
         case 0:
-        	SSL_shutdown(ssl);
+            SSL_shutdown(ssl);
             break;
         case 1:
         default:
@@ -36,8 +43,9 @@ void TLSZmq::shutdown() {
 }
 
 TLSZmq::~TLSZmq() {
-
     SSL_free(ssl);
+    ERR_free_strings();
+
     delete ssl_to_app;
     delete app_to_ssl;
     delete zmq_to_ssl;
@@ -57,10 +65,8 @@ void TLSZmq::update()
     if (app_to_ssl->size() > 0) {
         int rc = SSL_write(ssl, app_to_ssl->data(), app_to_ssl->size());
         
-        if (!continue_ssl_(rc)) {
-             throw std::runtime_error("An SSL error occured.");
-        }
-         
+        check_ssl_(rc);
+
         if ( rc == app_to_ssl->size() ) {
         	app_to_ssl->rebuild(0);
         }
@@ -118,7 +124,7 @@ SSL_CTX *TLSZmq::init_ctx(int mode) {
     } else if (SSL_SERVER == mode) {
     	 meth = SSLv3_server_method ();
     } else {
-    	throw std::runtime_error("Error: Invalid SSL mode. Valid modes are TLSZmq::SSL_CLIENT and TLSZmq::SSL_SERVER \n");
+    	throw TLSException("Error: Invalid SSL mode. Valid modes are TLSZmq::SSL_CLIENT and TLSZmq::SSL_SERVER");
     }
 
     SSL_CTX *ctxt = SSL_CTX_new (meth);
@@ -172,9 +178,7 @@ void TLSZmq::net_read_() {
         char readto[1024];
         int read = SSL_read(ssl, readto, 1024);
 
-        if (!continue_ssl_(read)) {
-            throw std::runtime_error("An SSL error occured.");
-        }
+        check_ssl_(read);
 
         if (read > 0) {
             size_t cur_size = aread.length();
@@ -196,22 +200,17 @@ void TLSZmq::net_read_() {
     }
 }
 
-bool TLSZmq::continue_ssl_(int rc) {
+void TLSZmq::check_ssl_(int rc) {
     int err = SSL_get_error(ssl, rc);
 
     if (err == SSL_ERROR_NONE || err == SSL_ERROR_WANT_READ) {
-        return true;
+        return;
     }
 
-    if (err == SSL_ERROR_SYSCALL) {
-        ERR_print_errors_fp(stderr);
-        perror("DEBUG: syscall error: ");
-        return false;
+    if (err == SSL_ERROR_SYSCALL ||
+            err == SSL_ERROR_SSL) {
+        throw TLSException(err);
     }
 
-    if (err == SSL_ERROR_SSL) {
-        ERR_print_errors_fp(stderr);
-        return false;
-    }
-    return true;
+    return;
 }
